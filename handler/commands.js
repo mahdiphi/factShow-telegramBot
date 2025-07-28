@@ -4,8 +4,9 @@ const functions = require("./functions");
 async function requireAdmin(msg, next) {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
+  const start = msg.text.startsWith("/");
   const status = await functions.checkMemberStatus(chatId, userId);
-  if (status !== "creator" && status !== "administrator") {
+  if (status !== "creator" && status !== "administrator" && start) {
     await bot.sendMessage(chatId, "ادمین نیستی شیره مال :)");
     return;
   }
@@ -66,29 +67,32 @@ bot.on("message", async (msg) => {
   requireAdmin(msg, async () => {
     try {
       const chatId = msg.chat.id;
+      const userId = msg.chat.id;
       if (!msg.text) return;
 
-      if (
-        msg.text.startsWith("/ban") ||
-        (msg.text.startsWith("/ban") &&
-          (!msg.reply_to_message || !msg.reply_to_message.from))
-      ) {
-        return;
-      }
-      const targetId = msg.reply_to_message.from.id;
-      const status = await functions.checkMemberStatus(chatId, targetId);
+      const isBanCommand = msg.text.startsWith("/ban");
+      const isUnbanCommand = msg.text.startsWith("/unban");
 
-      if (msg.text.startsWith("/ban") && status === "member") {
-        await bot.banChatMember(chatId, targetId);
-        bot.sendMessage(chatId, "کاربر بن شد.");
-      }
+      if ((isBanCommand || isUnbanCommand) && msg.reply_to_message?.from) {
+        const targetId = msg.reply_to_message.from.id;
+        const status = await functions.checkMemberStatus(chatId, targetId);
+        console.log("status:", status);
 
-      if (msg.text.startsWith("/unban") && status === "kicked") {
-        await bot.unbanChatMember(chatId, targetId);
-        bot.sendMessage(chatId, "کاربر آنبن شد.");
+        if (isBanCommand && status === "member") {
+          await bot.banChatMember(chatId, targetId);
+          return bot.sendMessage(chatId, "کاربر بن شد.");
+        }
+
+        if (isUnbanCommand && status === "kicked") {
+          await bot.unbanChatMember(chatId, targetId);
+          return bot.sendMessage(chatId, "کاربر آنبن شد.");
+        }
+      } else if ((isBanCommand || isUnbanCommand) && functions.checkMemberStatus(chatId, userId) !== "member") {
+        return bot.sendMessage(chatId, "باید روی پیام کاربر ریپلای بزنی تا بتونم بن یا آنبن کنم.");
       }
     } catch (error) {
       console.log("/ban handler error:", error);
     }
   });
 });
+
