@@ -1,12 +1,13 @@
 const bot = require("../bot");
 const functions = require("./functions");
+// const permissions = require("../states/permissions");
 
 async function requireAdmin(msg, next) {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
-  const start = msg.text.startsWith("/");
+  const isStart = msg.text ? msg.text.startsWith("/") : false;
   const status = await functions.checkMemberStatus(chatId, userId);
-  if (status !== "creator" && status !== "administrator" && start) {
+  if (status !== "creator" && status !== "administrator" && isStart) {
     await bot.sendMessage(chatId, "ادمین نیستی شیره مال :)");
     return;
   }
@@ -67,13 +68,18 @@ bot.on("message", async (msg) => {
   requireAdmin(msg, async () => {
     try {
       const chatId = msg.chat.id;
-      const userId = msg.chat.id;
+      const userId = msg.from.id;
       if (!msg.text) return;
 
       const isBanCommand = msg.text.startsWith("/ban");
       const isUnbanCommand = msg.text.startsWith("/unban");
+      const isMuteCommand = msg.text.startsWith("/mute");
+      const isUnMuteCommand = msg.text.startsWith("/unmute");
 
-      if ((isBanCommand || isUnbanCommand) && msg.reply_to_message?.from) {
+      if (
+        (isBanCommand || isUnbanCommand || isMuteCommand || isUnMuteCommand) &&
+        msg.reply_to_message?.from
+      ) {
         const targetId = msg.reply_to_message.from.id;
         const status = await functions.checkMemberStatus(chatId, targetId);
         console.log("status:", status);
@@ -87,12 +93,39 @@ bot.on("message", async (msg) => {
           await bot.unbanChatMember(chatId, targetId);
           return bot.sendMessage(chatId, "کاربر آنبن شد.");
         }
-      } else if ((isBanCommand || isUnbanCommand) && functions.checkMemberStatus(chatId, userId) !== "member") {
-        return bot.sendMessage(chatId, "باید روی پیام کاربر ریپلای بزنی تا بتونم بن یا آنبن کنم.");
+        if (isMuteCommand && status === "member") {
+          await bot.restrictChatMember(chatId, targetId, {
+            // permissions: {
+            can_send_messages: false,
+            // }
+          });
+          return bot.sendMessage(chatId, "کاربر میوت شد.");
+        }
+        if (isUnMuteCommand && status === "restricted") {
+          await bot.restrictChatMember(chatId, targetId, {
+            can_send_messages: true,
+            can_send_media_messages: true,
+            can_send_polls: true,
+            can_send_other_messages: true,
+            can_add_web_page_previews: true,
+            can_invite_users: true,
+            can_change_info: false,
+            can_pin_messages: false,
+          });
+          return bot.sendMessage(chatId, "کاربر از میوت خارج شد.");
+        }
+
+      } else if (
+        (isBanCommand || isUnbanCommand || isMuteCommand || isUnMuteCommand) &&
+        functions.checkMemberStatus(chatId, userId) !== "member"
+      ) {
+        return bot.sendMessage(
+          chatId,
+          "باید روی پیام کاربر ریپلای بزنی تا بتونم بن یا آنبن کنم."
+        );
       }
     } catch (error) {
       console.log("/ban handler error:", error);
     }
   });
 });
-

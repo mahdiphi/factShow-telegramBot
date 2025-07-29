@@ -4,6 +4,7 @@ const userState = require("./states/userState");
 const bot = require("./bot");
 const handleCallbackQuery = require("./handler/callback-query");
 const handleCommands = require("./handler/commands");
+const handleMessages = require("./handler/message-handler")
 
 bot.on("my_chat_member", functions.checkAdminStatus);
 

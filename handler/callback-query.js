@@ -61,6 +61,7 @@ bot.on("callback_query", async (query) => {
                 callback_data: "toggle_forwarded",
               },
             ],
+            [{ text: "بازگشت ⬅️", callback_data: "backToPanel" }]
           ],
         },
         {
