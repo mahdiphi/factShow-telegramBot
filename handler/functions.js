@@ -49,12 +49,22 @@ async function showMainMenu(chatId, message_id) {
 }
 
 async function showPanel(chatId, messageId) {
+  if (!userState[chatId]) {
+    userState[chatId] = { isSpam: false,};
+  }
+  const settings = userState[chatId];
   await bot.editMessageText("✅ این بخش پنل رباته.", {
     chat_id: chatId,
     message_id: messageId,
     reply_markup: {
       inline_keyboard: [
-        [{ text: "حذف پیام", callback_data: "delete" }],
+        [
+          { text: "حذف پیام", callback_data: "delete" },
+          {
+            text: `ضد اسپم ${settings.isSpam ? "✅" : "❌"}`,
+            callback_data: "anti-spam",
+          },
+        ],
         [{ text: "بازگشت ⬅️", callback_data: "backToMainMenu" }],
       ],
     },
@@ -102,7 +112,6 @@ const checkMemberStatus = async (chatId, userId) => {
     return null;
   }
 };
-
 
 module.exports = {
   checkAdminStatus,

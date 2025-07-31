@@ -8,9 +8,19 @@ bot.on("message", async (msg) => {
   const name = msg.from.first_name;
   const date = msg.date;
 
-  if (!antiSpam[userId]) {
+  
+  
+  if (!userState[chatId]) {
+    userState[chatId] = { isSpam: false, };
+  }
+
+  const spam = userState[chatId]
+  
+  if(spam.isSpam){
+    if (!antiSpam[userId]) {
     antiSpam[userId] = { timestamps: [], warnings: 0 };
   }
+  console.log(spam.isSpam + "//////////" + userState[chatId])
 
   const userData = antiSpam[userId];
   userData.timestamps.push(date);
@@ -52,6 +62,9 @@ bot.on("message", async (msg) => {
 
   console.log(antiSpam[userId]);
 
+  }else{
+    return;
+  }
   //   const date = new Date(msg.date * 1000);
   //   console.log(date.toString());
 });

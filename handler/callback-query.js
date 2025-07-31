@@ -1,6 +1,6 @@
-const userState = require("../states/userState")
+const userState = require("../states/userState");
 const bot = require("../bot");
-const functions = require("./functions")
+const functions = require("./functions");
 
 bot.on("callback_query", async (query) => {
   try {
@@ -8,7 +8,7 @@ bot.on("callback_query", async (query) => {
     const data = query.data;
 
     if (!userState[chatId]) {
-      userState[chatId] = { isLinks: false, isForwarded: false };
+      userState[chatId] = { isLinks: false, isForwarded: false, isSpam: false };
     }
 
     const settings = userState[chatId];
@@ -36,15 +36,20 @@ bot.on("callback_query", async (query) => {
       case "toggle_forwarded":
         settings.isForwarded = !settings.isForwarded;
         break;
+      case "anti-spam":
+        settings.isSpam = !settings.isSpam;
+        console.log(settings.isSpam);
+
+        break;
       case "help":
         await bot.sendMessage(
           chatId,
           "📘 برای استفاده از ربات، از این دکمه‌ها کمک بگیر."
         );
         break;
-        case "exit":
-          await functions.exit(chatId, message_id)
-          break;
+      case "exit":
+        await functions.exit(chatId, message_id);
+        break;
     }
 
     if (data === "toggle_links" || data === "toggle_forwarded") {
@@ -61,7 +66,28 @@ bot.on("callback_query", async (query) => {
                 callback_data: "toggle_forwarded",
               },
             ],
-            [{ text: "بازگشت ⬅️", callback_data: "backToPanel" }]
+            [{ text: "بازگشت ⬅️", callback_data: "backToPanel" }],
+          ],
+        },
+        {
+          chat_id: chatId,
+          message_id: query.message.message_id,
+        }
+      );
+    }
+
+    if (data === "anti-spam") {
+      bot.editMessageReplyMarkup(
+        {
+          inline_keyboard: [
+            [
+              { text: "حذف پیام", callback_data: "delete" },
+              {
+                text: `ضد اسپم ${settings.isSpam ? "✅" : "❌"}`,
+                callback_data: "anti-spam",
+              },
+            ],
+            [{ text: "بازگشت ⬅️", callback_data: "backToMainMenu" }],
           ],
         },
         {
