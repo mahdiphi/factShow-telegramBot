@@ -1,5 +1,7 @@
 const bot = require("../bot");
 const userState = require("../states/userState");
+const { initUserState } = require("../core/userStateHelper");
+const { handleWords } = require("../states/badWords");
 
 async function checkAdminStatus(msg) {
   try {
@@ -49,10 +51,7 @@ async function showMainMenu(chatId, message_id) {
 }
 
 async function showPanel(chatId, messageId) {
-  if (!userState[chatId]) {
-    userState[chatId] = { isSpam: false,};
-  }
-  const settings = userState[chatId];
+  const settings = initUserState(chatId);
   await bot.editMessageText("✅ این بخش پنل رباته.", {
     chat_id: chatId,
     message_id: messageId,
@@ -65,16 +64,14 @@ async function showPanel(chatId, messageId) {
             callback_data: "anti-spam",
           },
         ],
+        [{ text: "فیلتر کلمات", callback_data: "filter" }],
         [{ text: "بازگشت ⬅️", callback_data: "backToMainMenu" }],
       ],
     },
   });
 }
 async function ShowDelete(chatId, messageId) {
-  if (!userState[chatId]) {
-    userState[chatId] = { isLinks: false, isForwarded: false };
-  }
-  const settings = userState[chatId];
+  const settings = initUserState(chatId);
 
   await bot.editMessageText("بخش حذف خودکار پیام‌ها", {
     chat_id: chatId,
@@ -113,6 +110,30 @@ const checkMemberStatus = async (chatId, userId) => {
   }
 };
 
+const badWords = async (chatId, messageId) => {
+  const settings = handleWords(chatId);
+  try {
+    await bot.editMessageText("بخش فیلتر کلمات", {
+      chat_id: chatId,
+      message_id: messageId,
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: ` فیلتر کلمات ${settings.enabled ? "✅" : "❌"}`,
+              callback_data: "isFilter",
+            },
+            { text: "اضافه کردن", callback_data: "addWords" },
+          ],
+          [{ text: "بازگشت ⬅️", callback_data: "backToPanel" }],
+        ],
+      },
+    });
+  } catch (error) {
+    console.error("filterWords error:", err.message);
+  }
+};
+
 module.exports = {
   checkAdminStatus,
   showMainMenu,
@@ -120,4 +141,5 @@ module.exports = {
   ShowDelete,
   exit,
   checkMemberStatus,
+  badWords,
 };

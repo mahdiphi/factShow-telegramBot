@@ -1,17 +1,16 @@
 const userState = require("../states/userState");
 const bot = require("../bot");
 const functions = require("./functions");
+const { initUserState } = require("../core/userStateHelper");
+const { handleWords } = require("../states/badWords");
 
 bot.on("callback_query", async (query) => {
   try {
     const chatId = query.message.chat.id;
     const data = query.data;
+    const settings = initUserState(chatId);
+    const words = handleWords(chatId);
 
-    if (!userState[chatId]) {
-      userState[chatId] = { isLinks: false, isForwarded: false, isSpam: false };
-    }
-
-    const settings = userState[chatId];
     const message_id = query.message.message_id;
 
     switch (data) {
@@ -39,13 +38,18 @@ bot.on("callback_query", async (query) => {
       case "anti-spam":
         settings.isSpam = !settings.isSpam;
         console.log(settings.isSpam);
-
         break;
       case "help":
         await bot.sendMessage(
           chatId,
           "📘 برای استفاده از ربات، از این دکمه‌ها کمک بگیر."
         );
+        break;
+      case "filter":
+        await functions.badWords(chatId, message_id);
+        break;
+      case "isFilter":
+        words.enabled = !words.enabled;
         break;
       case "exit":
         await functions.exit(chatId, message_id);
@@ -87,7 +91,30 @@ bot.on("callback_query", async (query) => {
                 callback_data: "anti-spam",
               },
             ],
+            [{ text: "فیلتر کلمات", callback_data: "filter" }],
+
             [{ text: "بازگشت ⬅️", callback_data: "backToMainMenu" }],
+          ],
+        },
+        {
+          chat_id: chatId,
+          message_id: query.message.message_id,
+        }
+      );
+    }
+
+    if (data === "isFilter") {
+      bot.editMessageReplyMarkup(
+        {
+          inline_keyboard: [
+            [
+              {
+                text: ` فیلتر کلمات ${words.enabled ? "✅" : "❌"}`,
+                callback_data: "isFilter",
+              },
+              { text: "اضافه کردن", callback_data: "addWords" },
+            ],
+            [{ text: "بازگشت ⬅️", callback_data: "backToPanel" }],
           ],
         },
         {

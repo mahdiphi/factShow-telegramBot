@@ -1,26 +1,22 @@
 const bot = require("../bot");
 const userState = require("../states/userState");
 const antiSpam = require("../states/anti-spam");
+const { initUserState } = require("../core/userStateHelper")
 
 bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
   const name = msg.from.first_name;
   const date = msg.date;
+  const settings = initUserState(chatId)
+
 
   
-  
-  if (!userState[chatId]) {
-    userState[chatId] = { isSpam: false, };
-  }
-
-  const spam = userState[chatId]
-  
-  if(spam.isSpam){
+  if(settings.isSpam){
     if (!antiSpam[userId]) {
     antiSpam[userId] = { timestamps: [], warnings: 0 };
   }
-  console.log(spam.isSpam + "//////////" + userState[chatId])
+  console.log(settings.isSpam + "//////////" + userState[chatId])
 
   const userData = antiSpam[userId];
   userData.timestamps.push(date);

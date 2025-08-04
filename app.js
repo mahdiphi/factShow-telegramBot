@@ -5,18 +5,21 @@ const bot = require("./bot");
 const handleCallbackQuery = require("./handler/callback-query");
 const handleCommands = require("./handler/commands");
 const handleMessages = require("./handler/message-handler")
+const { initUserState } = require("./core/userStateHelper");
+const { handleWords } = require("./states/badWords")
+
 
 bot.on("my_chat_member", functions.checkAdminStatus);
 
 bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
+  const userId = msg.from.id;
+  const settings = initUserState(chatId);
+  const words = handleWords(chatId)
 
-  if (!userState[chatId]) {
-    userState[chatId] = { isLinks: false, isForwarded: false };
-  }
 
   const text = msg.text;
-  const settings = userState[chatId];
+  const memberStatus = await functions.checkMemberStatus(chatId, userId)
 
   // Welcome new members
   if (msg.new_chat_members) {
@@ -64,6 +67,11 @@ bot.on("message", async (msg) => {
     }
   }
 });
+
+// Delleting bad words:
+if(words.enabled){
+  
+}
 
 handleCommands;
 
