@@ -4,7 +4,7 @@ function handleWords(chatId) {
 
   const defaultState = {
     enabled: false,
-    words: [],
+    words: ["mmd", "ali", "samad"],
   };
 
   for (const key in defaultState) {

@@ -104,24 +104,22 @@ bot.on("callback_query", async (query) => {
     }
 
     if (data === "isFilter") {
-      bot.editMessageReplyMarkup(
-        {
+      bot.editMessageText("بخش فیلتر کلمات", {
+        chat_id: chatId,
+        message_id: query.message.message_id,
+        reply_markup: {
           inline_keyboard: [
             [
               {
                 text: ` فیلتر کلمات ${words.enabled ? "✅" : "❌"}`,
                 callback_data: "isFilter",
               },
-              { text: "اضافه کردن", callback_data: "addWords" },
+              { text: "اضافه کردن", url: "https://t.me/FactShowPersianBot" },
             ],
             [{ text: "بازگشت ⬅️", callback_data: "backToPanel" }],
           ],
         },
-        {
-          chat_id: chatId,
-          message_id: query.message.message_id,
-        }
-      );
+      });
     }
 
     await bot.answerCallbackQuery(query.id);

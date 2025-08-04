@@ -66,12 +66,18 @@ bot.on("message", async (msg) => {
       console.log("Error deleting forwarded message:", err.message);
     }
   }
+  // Delleting bad words:
+  if(words.enabled){
+    const text = msg.text;
+    console.log(text)
+    for(let i = 0; i <= words.words.length; i++){
+      if(text.includes(words.words[i])){
+        bot.deleteMessage(chatId, msg.message_id)
+      }
+    }
+  }
 });
 
-// Delleting bad words:
-if(words.enabled){
-  
-}
 
 handleCommands;
 
