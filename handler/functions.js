@@ -134,28 +134,6 @@ const badWords = async (chatId, messageId) => {
   }
 };
 
-const addWords = async (chatId) => {
-  const settings = handleWords(chatId);
-  try {
-    bot.sendMessage(
-      chatId,
-      "کلماتی که میخوای فیلتر بشن رو تک به تک بنویس و بفرست در آخر بنویس (تمام)."
-    );
-    bot.on("message", async (msg) => {
-      if (msg.chat.type === "private") {
-        const text = msg.text;
-        if (text === "تمام") {
-          console.log(settings.words);
-        } else {
-          settings.words.push(text);
-        }
-      }
-    });
-  } catch (error) {
-    console.log("Add words error: ", error.message);
-  }
-};
-
 module.exports = {
   checkAdminStatus,
   showMainMenu,
@@ -164,5 +142,4 @@ module.exports = {
   exit,
   checkMemberStatus,
   badWords,
-  addWords,
 };

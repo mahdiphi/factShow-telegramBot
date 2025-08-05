@@ -1,6 +1,6 @@
 const bot = require("../bot");
 const functions = require("./functions");
-// const permissions = require("../states/permissions");
+const { handleWords } = require("../states/badWords");
 
 async function requireAdmin(msg, next) {
   const chatId = msg.chat.id;
@@ -23,7 +23,7 @@ bot.onText(/\/start/, async (msg) => {
         {
           reply_markup: {
             inline_keyboard: [
-              [{text: "کلمات فیلتر شده", callback_data: "add-words"}],
+              [{ text: "کلمات فیلتر شده", callback_data: "add-words" }],
               [
                 {
                   text: "افزودن به گروه",
@@ -63,6 +63,28 @@ bot.onText(/\/panel/, async (msg) => {
       console.error("/panel handler error:", error);
     }
   });
+});
+bot.onText(/\/addWords/, async (msg) => {
+  const chatId = msg.chat.id;
+  const settings = handleWords(chatId);
+  try {
+    if (msg.chat.type === "private") {
+      bot.sendMessage(
+        chatId,
+        "کلماتی که میخوای فیلتر بشن رو تک به تک بنویس و بفرست در آخر بنویس (تمام)."
+      );
+      bot.on("message", async (msg) => {
+        const text = msg.text;
+        if (text === "تمام") {
+          console.log(settings.words);
+        } else {
+          settings.words.push(text);
+        }
+      });
+    }
+  } catch (error) {
+    console.log("Add words error: ", error.message);
+  }
 });
 
 bot.on("message", async (msg) => {
@@ -115,7 +137,6 @@ bot.on("message", async (msg) => {
           });
           return bot.sendMessage(chatId, "کاربر از میوت خارج شد.");
         }
-
       } else if (
         (isBanCommand || isUnbanCommand || isMuteCommand || isUnMuteCommand) &&
         functions.checkMemberStatus(chatId, userId) !== "member"

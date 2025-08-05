@@ -51,8 +51,6 @@ bot.on("callback_query", async (query) => {
       case "isFilter":
         words.enabled = !words.enabled;
         break;
-        case "add-words":
-          await functions.addWords(chatId)
       case "exit":
         await functions.exit(chatId, message_id);
         break;
@@ -126,7 +124,7 @@ bot.on("callback_query", async (query) => {
 
     if (data === "words") {
       bot.editMessageText(
-        "برای اضافه کردن کلمات به پی وی بات برو و کامند /start رو بزن.",
+        "برای اضافه کردن کلمات به پی وی بات برو و کامند /addWords رو بزن.",
         {
           chat_id: chatId,
           message_id: query.message.message_id,
