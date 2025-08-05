@@ -23,6 +23,7 @@ bot.onText(/\/start/, async (msg) => {
         {
           reply_markup: {
             inline_keyboard: [
+              [{text: "کلمات فیلتر شده", callback_data: "add-words"}],
               [
                 {
                   text: "افزودن به گروه",

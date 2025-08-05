@@ -123,7 +123,7 @@ const badWords = async (chatId, messageId) => {
               text: ` فیلتر کلمات ${settings.enabled ? "✅" : "❌"}`,
               callback_data: "isFilter",
             },
-            { text: "اضافه کردن", callback_data: "addWords" },
+            { text: "اضافه کردن", callback_data: "words" },
           ],
           [{ text: "بازگشت ⬅️", callback_data: "backToPanel" }],
         ],
@@ -131,6 +131,28 @@ const badWords = async (chatId, messageId) => {
     });
   } catch (error) {
     console.error("filterWords error:", err.message);
+  }
+};
+
+const addWords = async (chatId) => {
+  const settings = handleWords(chatId);
+  try {
+    bot.sendMessage(
+      chatId,
+      "کلماتی که میخوای فیلتر بشن رو تک به تک بنویس و بفرست در آخر بنویس (تمام)."
+    );
+    bot.on("message", async (msg) => {
+      if (msg.chat.type === "private") {
+        const text = msg.text;
+        if (text === "تمام") {
+          console.log(settings.words);
+        } else {
+          settings.words.push(text);
+        }
+      }
+    });
+  } catch (error) {
+    console.log("Add words error: ", error.message);
   }
 };
 
@@ -142,4 +164,5 @@ module.exports = {
   exit,
   checkMemberStatus,
   badWords,
+  addWords,
 };

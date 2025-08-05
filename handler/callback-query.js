@@ -51,6 +51,8 @@ bot.on("callback_query", async (query) => {
       case "isFilter":
         words.enabled = !words.enabled;
         break;
+        case "add-words":
+          await functions.addWords(chatId)
       case "exit":
         await functions.exit(chatId, message_id);
         break;
@@ -114,12 +116,27 @@ bot.on("callback_query", async (query) => {
                 text: ` فیلتر کلمات ${words.enabled ? "✅" : "❌"}`,
                 callback_data: "isFilter",
               },
-              { text: "اضافه کردن", url: "https://t.me/FactShowPersianBot" },
+              { text: "اضافه کردن", callback_data: "words" },
             ],
             [{ text: "بازگشت ⬅️", callback_data: "backToPanel" }],
           ],
         },
       });
+    }
+
+    if (data === "words") {
+      bot.editMessageText(
+        "برای اضافه کردن کلمات به پی وی بات برو و کامند /start رو بزن.",
+        {
+          chat_id: chatId,
+          message_id: query.message.message_id,
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: "بازگشت ⬅️", callback_data: "isFilter" }],
+            ],
+          },
+        }
+      );
     }
 
     await bot.answerCallbackQuery(query.id);
