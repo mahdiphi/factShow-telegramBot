@@ -2,7 +2,7 @@ const userState = require("../states/userState");
 const bot = require("../bot");
 const functions = require("./functions");
 const { initUserState } = require("../core/userStateHelper");
-const { handleWords } = require("../states/badWords");
+const { handleWords, updateFilterWords } = require("../states/badWords");
 
 bot.on("callback_query", async (query) => {
   try {
@@ -39,17 +39,10 @@ bot.on("callback_query", async (query) => {
         settings.isSpam = !settings.isSpam;
         console.log(settings.isSpam);
         break;
+        case "filter":
+          await functions.badWords(chatId, message_id);
+          break;
       case "help":
-        await bot.sendMessage(
-          chatId,
-          "📘 برای استفاده از ربات، از این دکمه‌ها کمک بگیر."
-        );
-        break;
-      case "filter":
-        await functions.badWords(chatId, message_id);
-        break;
-      case "isFilter":
-        words.enabled = !words.enabled;
         break;
       case "exit":
         await functions.exit(chatId, message_id);
@@ -103,28 +96,38 @@ bot.on("callback_query", async (query) => {
       );
     }
 
-    if (data === "isFilter") {
-      bot.editMessageText("بخش فیلتر کلمات", {
-        chat_id: chatId,
-        message_id: query.message.message_id,
-        reply_markup: {
-          inline_keyboard: [
-            [
-              {
-                text: ` فیلتر کلمات ${words.enabled ? "✅" : "❌"}`,
-                callback_data: "isFilter",
-              },
-              { text: "اضافه کردن", callback_data: "words" },
-            ],
-            [{ text: "بازگشت ⬅️", callback_data: "backToPanel" }],
-          ],
-        },
-      });
-    }
+if (data === "isFilter") {
+  const settings = handleWords(chatId);
 
-    if (data === "words") {
+  settings.enabled = !settings.enabled;
+
+  updateFilterWords(chatId, settings);
+
+  await bot.editMessageText("بخش فیلتر کلمات", {
+    chat_id: chatId,
+    message_id: query.message.message_id,
+    reply_markup: {
+      inline_keyboard: [
+        [
+          {
+            text: ` فیلتر کلمات ${settings.enabled ? "✅" : "❌"}`,
+            callback_data: "isFilter",
+          },
+          { text: "اضافه کردن", callback_data: "words" },
+        ],
+        [{ text: "بازگشت ⬅️", callback_data: "backToPanel" }],
+      ],
+    },
+  });
+}
+
+
+
+
+
+    if (data === "add-words") {
       bot.editMessageText(
-        "برای اضافه کردن کلمات به پی وی بات برو و کامند /addWords رو بزن.",
+        "برای اضافه کردن کلمات به پی وی بات برو و کامند /addwords رو بزن.",
         {
           chat_id: chatId,
           message_id: query.message.message_id,

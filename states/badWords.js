@@ -1,19 +1,12 @@
-const filterWords = {};
+const { getFilterWords, saveFilterWords } = require("../fileStorage");
+
 function handleWords(chatId) {
-  if (!filterWords[chatId]) filterWords[chatId] = {};
-
-  const defaultState = {
-    enabled: false,
-    words: [],
-  };
-
-  for (const key in defaultState) {
-    if (filterWords[chatId][key] === undefined) {
-      filterWords[chatId][key] = defaultState[key];
-    }
-  }
-
-  return filterWords[chatId];
+  const settings = getFilterWords(chatId);
+  return settings;
 }
 
-module.exports = {handleWords}
+function updateFilterWords(chatId, settings) {
+  saveFilterWords(chatId, settings);
+}
+
+module.exports = { handleWords, updateFilterWords };

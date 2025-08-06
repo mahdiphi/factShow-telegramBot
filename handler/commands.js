@@ -1,13 +1,19 @@
 const bot = require("../bot");
 const functions = require("./functions");
-const { handleWords } = require("../states/badWords");
+const { handleWords, updateFilterWords } = require("../states/badWords");
 
 async function requireAdmin(msg, next) {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
   const isStart = msg.text ? msg.text.startsWith("/") : false;
   const status = await functions.checkMemberStatus(chatId, userId);
-  if (status !== "creator" && status !== "administrator" && isStart) {
+  const chatType = msg.chat.type;
+  if (
+    status !== "creator" &&
+    status !== "administrator" &&
+    isStart &&
+    chatType !== "private"
+  ) {
     await bot.sendMessage(chatId, "ادمین نیستی شیره مال :)");
     return;
   }
@@ -23,7 +29,6 @@ bot.onText(/\/start/, async (msg) => {
         {
           reply_markup: {
             inline_keyboard: [
-              [{ text: "کلمات فیلتر شده", callback_data: "add-words" }],
               [
                 {
                   text: "افزودن به گروه",
@@ -64,26 +69,58 @@ bot.onText(/\/panel/, async (msg) => {
     }
   });
 });
-bot.onText(/\/addWords/, async (msg) => {
+const userState = {};
+
+bot.onText(/\/addwords/, async (msg) => {
   const chatId = msg.chat.id;
-  const settings = handleWords(chatId);
+  const userId = msg.from.id;
+
   try {
     if (msg.chat.type === "private") {
+      if (!userState[userId]) {
+        userState[userId] = { isAddingWords: true, words: [] };
+      }
       bot.sendMessage(
         chatId,
         "کلماتی که میخوای فیلتر بشن رو تک به تک بنویس و بفرست در آخر بنویس (تمام)."
       );
+
       bot.on("message", async (msg) => {
+        if (msg.chat.id !== chatId || !userState[userId] || !userState[userId].isAddingWords)
+          return;
         const text = msg.text;
+        
         if (text === "تمام") {
-          console.log(settings.words);
+          const words = userState[userId].words;
+          const settings = handleWords(chatId);
+          
+          settings.words.push(...words);
+
+          updateFilterWords(chatId, settings);
+          
+          bot.sendMessage(chatId, "کلمات فیلتر شد.");
+          delete userState[userId];
         } else {
-          settings.words.push(text);
+          userState[userId].words.push(text);
         }
       });
     }
   } catch (error) {
     console.log("Add words error: ", error.message);
+  }
+});
+
+bot.on("message", (msg) => {
+  const chatId = msg.chat.id;
+  const settings = handleWords(chatId);
+  
+  if (settings.enabled) {
+    const text = msg.text;
+    for (let word of settings.words) {
+      if (text.includes(word)) {
+        bot.deleteMessage(chatId, msg.message_id);
+      }
+    }
   }
 });
 

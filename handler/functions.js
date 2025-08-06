@@ -113,26 +113,28 @@ const checkMemberStatus = async (chatId, userId) => {
 const badWords = async (chatId, messageId) => {
   const settings = handleWords(chatId);
   try {
-    await bot.editMessageText("بخش فیلتر کلمات", {
-      chat_id: chatId,
-      message_id: messageId,
-      reply_markup: {
-        inline_keyboard: [
-          [
-            {
-              text: ` فیلتر کلمات ${settings.enabled ? "✅" : "❌"}`,
-              callback_data: "isFilter",
-            },
-            { text: "اضافه کردن", callback_data: "words" },
+    const newText = ` فیلتر کلمات ${settings.enabled ? "✅" : "❌"}`;
+      await bot.editMessageText("بخش فیلتر کلمات", {
+        chat_id: chatId,
+        message_id: messageId,
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: newText,
+                callback_data: "isFilter",
+              },
+              { text: "اضافه کردن", callback_data: "add-words" },
+            ],
+            [{ text: "بازگشت ⬅️", callback_data: "backToPanel" }],
           ],
-          [{ text: "بازگشت ⬅️", callback_data: "backToPanel" }],
-        ],
-      },
-    });
+        },
+      });
   } catch (error) {
-    console.error("filterWords error:", err.message);
+    console.error("filterWords error:", error.message);
   }
 };
+
 
 module.exports = {
   checkAdminStatus,

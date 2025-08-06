@@ -15,8 +15,6 @@ bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
   const settings = initUserState(chatId);
-  const words = handleWords(chatId)
-
 
   const text = msg.text;
   const memberStatus = await functions.checkMemberStatus(chatId, userId)
@@ -67,12 +65,23 @@ bot.on("message", async (msg) => {
     }
   }
   // Delleting bad words:
-  if(words.enabled){
+ const words = handleWords(chatId);
+
+  // اگر فیلتر فعال است
+  if (words.enabled) {
     const text = msg.text;
-    console.log(text)
-    for(let i = 0; i <= words.words.length; i++){
-      if(text.includes(words.words[i])){
-        bot.deleteMessage(chatId, msg.message_id)
+
+    console.log("Message text:", text);
+
+    for (let i = 0; i < words.words.length; i++) {
+      if (text.includes(words.words[i])) {
+        try {
+          await bot.deleteMessage(chatId, msg.message_id);
+          console.log(`Message deleted due to word: ${words.words[i]}`);
+        } catch (error) {
+          console.error("Error deleting message:", error.message);
+        }
+        break;
       }
     }
   }
